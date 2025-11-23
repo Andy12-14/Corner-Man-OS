@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+
+workflow3/venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+workflow3/.env/

@@ -1,0 +1,1 @@
+overwrite for lorem.txt using write_file function.

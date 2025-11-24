@@ -519,7 +519,7 @@ This project is open source and available under the MIT License.
 
 ## Contact
 
-- **Maintainer:** Andy
+- **Maintainer:** Andy & Marc-Yvan
 - **GitHub:** [@Andy12-14](https://github.com/Andy12-14)
 - **Repository:** [Corner-Man-OS](https://github.com/Andy12-14/Corner-Man-OS)
 

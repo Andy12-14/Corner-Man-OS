@@ -628,12 +628,6 @@ To extend the agent with new tools:
 
 ---
 
-## 📝 License
-
-This project is provided as-is for educational and development purposes.
-
----
-
 ## 🙏 Acknowledgments
 
 - **Google Gemini**: Powered by Google's Gemini 2.5 Flash model
@@ -651,3 +645,7 @@ For issues or questions:
 ---
 
 **Happy Coding! 🚀**
+
+---
+Contributor : Andy & Marc-Yvan
+

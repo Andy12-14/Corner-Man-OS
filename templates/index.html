@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero">
+    <h1>Welcome to the Corner</h1>
+    <p>Select your agent to get started.</p>
+    <div class="agent-cards">
+        <a href="/headhunter" class="card">
+            <h2>Headhunter</h2>
+            <p>Finds everything about any boxer.</p>
+        </a>
+        <a href="/smoke_detector" class="card">
+            <h2>Smoke Detector</h2>
+            <p>Finds the fights and sets reminders.</p>
+        </a>
+        <a href="/the_plug" class="card">
+            <h2>The Plug</h2>
+            <p>The source for all boxing news.</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

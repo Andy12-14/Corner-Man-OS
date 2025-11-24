@@ -7,7 +7,7 @@ from ddgs import DDGS
 from scrapegraph_py import Client
 from google.genai import types
 from datetime import datetime
-import pywhatkit
+
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
@@ -129,7 +129,10 @@ import time
 import sys
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
-import pywhatkit
+try:
+    import pywhatkit
+except ImportError:
+    pywhatkit = None
 
 # Helper function to send the message
 def sent_whatsapp_reminder(phone_number, fight_date_str):
@@ -139,6 +142,12 @@ def sent_whatsapp_reminder(phone_number, fight_date_str):
     # Ensure phone number has exactly one "+"
     if not phone_number.startswith("+"):
         phone_number = f"+{phone_number}"
+
+    # Docker/Headless Check
+    if os.environ.get("ENV") == "docker":
+        print(f"🐳 [DOCKER MODE] Mocking WhatsApp send to {phone_number}: {message}")
+        print("✅ Message sent successfully (Mocked).")
+        return
 
     try:
         pywhatkit.sendwhatmsg_instantly(phone_number, message, wait_time=20, tab_close=True)
@@ -218,6 +227,12 @@ def sent_whatsapp(phone_number, message):
     print(f"\n📞 Sending WhatsApp to +{phone_number}...")
 
     phone_number = f"+{phone_number}"
+    
+    # Docker/Headless Check
+    if os.environ.get("ENV") == "docker":
+        print(f"🐳 [DOCKER MODE] Mocking WhatsApp send to {phone_number}: {message}")
+        return "✅ Message sent successfully (Mocked)."
+
     try:
         # wait_time needs to be long enough for WhatsApp Web to load (20s is safe)
         pywhatkit.sendwhatmsg_instantly(
@@ -336,7 +351,7 @@ schema_set_reminder = types.FunctionDeclaration(
     parameters=types.Schema(
         type=types.Type.OBJECT,
         properties={
-            "fight_date,": types.Schema(
+            "fight_date": types.Schema(
                 type=types.Type.STRING,
                 description="The date of the fight we sent an reminder for. It should be asked ",
             ),

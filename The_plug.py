@@ -20,7 +20,7 @@ schema_sent_whatsapp
 # Main Function
 #--------------------------------------------------------------
 
-def main():
+def run_the_plug(prompt):
 
     #system prompt
     system_prompt = """ You're an specialist for boxing journalism.
@@ -42,14 +42,7 @@ def main():
 
     client = genai.Client(api_key=api_key)
 
-    if len(sys.argv) < 2:
-        print("Please provide a prompt as a command-line argument.")
-        sys.exit(1)
-    prompt = sys.argv[1]
     verbose = False
-    if len(sys.argv) == 3 and sys.argv[2] == "--verbose":
-        verbose = True
-    
         
     messages = [
     types.Content(role="user", parts=[types.Part(text=prompt)]),
@@ -67,16 +60,17 @@ def main():
     max_iters = 20
     for i in range(0, max_iters + 1):
 
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=messages,
-            config=config
-
-        )
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=messages,
+                config=config
+            )
+        except Exception as e:
+            return f"Error: The AI service is currently overloaded or unavailable ({str(e)}). Please try again in a moment."
 
         if response is None or response.usage_metadata is None:
-            print("response is malformed")
-            return
+            return "Error: Response is malformed"
         
         if verbose:
             print()
@@ -100,9 +94,12 @@ def main():
                 
         else:
 
-            print(response.text)
-            return
+            return response.text
    
 
 
-main()
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Please provide a prompt as a command-line argument.")
+        sys.exit(1)
+    print(run_the_plug(sys.argv[1]))

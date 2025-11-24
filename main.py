@@ -1,44 +1,38 @@
 import os
-from ddgs import DDGS
-from scrapegraph_py import Client
-from dotenv import load_dotenv
+from flask import Flask, render_template, request, jsonify
+from headhunter import run_headhunter
+from smoke_detector import run_smoke_detector
+from The_plug import run_the_plug
 
+app = Flask(__name__)
 
+@app.route('/')
+def index():
+    return render_template('index.html')
 
+@app.route('/headhunter', methods=['GET', 'POST'])
+def headhunter():
+    if request.method == 'POST':
+        user_input = request.json.get('message')
+        response = run_headhunter(user_input)
+        return jsonify({'response': response})
+    return render_template('agent.html', agent_name="Headhunter", catchphrase="I find everything about everyone.", agent_id="headhunter")
 
-boxer_name = input("Enter the boxer's name: ")
+@app.route('/smoke_detector', methods=['GET', 'POST'])
+def smoke_detector():
+    if request.method == 'POST':
+        user_input = request.json.get('message')
+        response = run_smoke_detector(user_input)
+        return jsonify({'response': response})
+    return render_template('agent.html', agent_name="Smoke Detector", catchphrase="Where there's smoke, there's a fight!", agent_id="smoke_detector")
 
-def main(boxer_name):
+@app.route('/the_plug', methods=['GET', 'POST'])
+def the_plug():
+    if request.method == 'POST':
+        user_input = request.json.get('message')
+        response = run_the_plug(user_input)
+        return jsonify({'response': response})
+    return render_template('agent.html', agent_name="The Plug", catchphrase="Everybody knows the plug has the goods (;)", agent_id="the_plug")
 
-    load_dotenv()
-    api_key = os.environ.get("SCRAPEGRAPH_API_KEY")
-    ddgs = DDGS()
-    results = ddgs.text(
-            query = f'{boxer_name} Boxrec ', 
-            region="us-en",
-            max_results=5,
-            safesearch="moderate")
-    boxrec_url = ""
-    for result in results:
-        if result.get('href') and "boxrec.com" in result['href']:
-            boxrec_url = result['href']
-            break
-        else:
-            boxrec_url = "BoxRec profile not found."
-    
-    try:
-        client = Client(api_key=api_key)
-        response = client.smartscraper(
-            website_url=boxrec_url,
-            user_prompt="""
-            GET full boxer profile including birth name, sex, age, nationality, stance,
-            division, worldwide rank, USA rank, debuts, career, bouts, rounds, record,
-            KOs (percentage of KOs), titles, most recent fight, upcoming fights, and wiki links in JSON format.
-            """
-        )
-        return response
-    except Exception as e:
-        return {"error": f"Error scraping BoxRec: {str(e)}"}
-
-
-print(main(boxer_name))
+if __name__ == '__main__':
+    app.run(debug=True)

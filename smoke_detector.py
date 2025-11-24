@@ -9,8 +9,8 @@ from ddgs import DDGS
 from scrapegraph_py import Client
 from Tools.tools import (
     schema_get_fights,
-sent_whatsapp_reminder,
-schema_set_reminder
+    schema_sent_whatsapp_reminder,
+    schema_set_reminder
 
 )
 
@@ -21,7 +21,7 @@ schema_set_reminder
 # Main Function
 #--------------------------------------------------------------
 
-def main():
+def run_smoke_detector(prompt):
 
     #system prompt
     system_prompt = """ You're an specialist when it comes to find boxing fights, your'e enthusiastic for boxing fights.
@@ -31,7 +31,7 @@ def main():
 
     - Scrape box-live and get a bunch of upcoming fights
     - you can set an reminder for the given date and send a whatsapp to the given number as reminder the day before the given date 
-
+    
     the function sent_whatsapp_reminder should only be used inside the set_reminder functions the user should provie his number and the date for the reminder.
     if the the user didn't provide any number use this phone number as an default number 33753862654 and the date pick the 24 th November of 2025 as a default date 
     for the set_remindet function. if the date  don't have the right format for the set_reminder put it in the right format. Also for the get_fights function you should put the infos as a strings
@@ -43,14 +43,7 @@ def main():
 
     client = genai.Client(api_key=api_key)
 
-    if len(sys.argv) < 2:
-        print("Please provide a prompt as a command-line argument.")
-        sys.exit(1)
-    prompt = sys.argv[1]
     verbose = False
-    if len(sys.argv) == 3 and sys.argv[2] == "--verbose":
-        verbose = True
-    
         
     messages = [
     types.Content(role="user", parts=[types.Part(text=prompt)]),
@@ -58,7 +51,7 @@ def main():
     available_functions = types.Tool(
     function_declarations=[
          schema_get_fights,
-         sent_whatsapp_reminder,
+         schema_sent_whatsapp_reminder,
          schema_set_reminder
     ]
 )
@@ -69,16 +62,17 @@ def main():
     max_iters = 20
     for i in range(0, max_iters + 1):
 
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=messages,
-            config=config
-
-        )
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=messages,
+                config=config
+            )
+        except Exception as e:
+            return f"Error: The AI service is currently overloaded or unavailable ({str(e)}). Please try again in a moment."
 
         if response is None or response.usage_metadata is None:
-            print("response is malformed")
-            return
+            return "Error: Response is malformed"
         
         if verbose:
             print()
@@ -102,12 +96,12 @@ def main():
                 
         else:
 
-            print(response.text)
-            return
+            return response.text
    
 
 
-main()
-
-
-
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Please provide a prompt as a command-line argument.")
+        sys.exit(1)
+    print(run_smoke_detector(sys.argv[1]))

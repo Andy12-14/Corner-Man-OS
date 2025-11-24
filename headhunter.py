@@ -21,7 +21,7 @@ schema_get_boxer_image
 # Main Function
 #--------------------------------------------------------------
 
-def main():
+def run_headhunter(prompt):
 
     #system prompt
     system_prompt = """ You're an specialist when it comes to find an summarize informations about boxers.
@@ -39,6 +39,18 @@ def main():
     aspect. At the end the user got to have an summary as a string of the boxer , his highlights on youtube (only one link) and his image(only one too).
     Make sure that the user gave you only boxer name and no other stuff don't even try to bother if he asked you something else
 
+    IMPORTANT: Format your response using clear Markdown structure:
+    ## General Info
+    [Details here]
+    
+    ## Boxing Record
+    [Details here]
+    
+    ## Highlights
+    [Link here]
+    
+    ## Image
+    [Link here]
     """
 
     load_dotenv()
@@ -46,14 +58,7 @@ def main():
 
     client = genai.Client(api_key=api_key)
 
-    if len(sys.argv) < 2:
-        print("Please provide a prompt as a command-line argument.")
-        sys.exit(1)
-    prompt = sys.argv[1]
     verbose = False
-    if len(sys.argv) == 3 and sys.argv[2] == "--verbose":
-        verbose = True
-    
         
     messages = [
     types.Content(role="user", parts=[types.Part(text=prompt)]),
@@ -72,16 +77,17 @@ def main():
     max_iters = 20
     for i in range(0, max_iters + 1):
 
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=messages,
-            config=config
-
-        )
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=messages,
+                config=config
+            )
+        except Exception as e:
+            return f"Error: The AI service is currently overloaded or unavailable ({str(e)}). Please try again in a moment."
 
         if response is None or response.usage_metadata is None:
-            print("response is malformed")
-            return
+            return "Error: Response is malformed"
         
         if verbose:
             print()
@@ -105,9 +111,12 @@ def main():
                 
         else:
 
-            print(response.text)
-            return
+            return response.text
    
 
 
-main()
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Please provide a prompt as a command-line argument.")
+        sys.exit(1)
+    print(run_headhunter(sys.argv[1]))

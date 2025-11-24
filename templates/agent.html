@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="agent-interface">
+    <div class="agent-header">
+        <h1>{{ agent_name }}</h1>
+        <p class="catchphrase">"{{ catchphrase }}"</p>
+    </div>
+
+    <div class="chat-box" id="chat-box">
+        <!-- Chat history goes here -->
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Ask me anything about boxing...">
+        <button onclick="sendMessage()">Send 🥊</button>
+    </div>
+</div>
+
+<script>
+    const agentId = "{{ agent_id }}";
+
+    async function sendMessage() {
+        const inputField = document.getElementById('user-input');
+        const message = inputField.value;
+        if (!message) return;
+
+        addMessage('user', message);
+        inputField.value = '';
+
+        // Show loading indicator
+        const loadingId = addMessage('agent', 'Thinking...', true);
+
+        try {
+            const response = await fetch(`/${agentId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            });
+            const data = await response.json();
+
+            // Remove loading indicator
+            removeMessage(loadingId);
+
+            // Process response for links and images
+            addMessage('agent', data.response);
+        } catch (error) {
+            removeMessage(loadingId);
+            addMessage('agent', 'Error: Could not reach the corner man.');
+        }
+    }
+
+    function addMessage(sender, text, isLoading = false) {
+        const chatBox = document.getElementById('chat-box');
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', sender);
+        if (isLoading) messageDiv.id = 'loading-' + Date.now();
+
+        // Parse text for YouTube links and Images
+        let content = text;
+
+        // Simple regex for YouTube links (convert to embed)
+        const youtubeRegex = /(https?:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+))/g;
+        content = content.replace(youtubeRegex, '<div class="video-container"><iframe width="560" height="315" src="https://www.youtube.com/embed/$2" frameborder="0" allowfullscreen></iframe></div>');
+
+        // Simple regex for Image links (ending in jpg, png, etc. or just generic URLs if we trust the agent)
+        // The agents return specific image links, hopefully.
+        // Let's assume if it's a raw URL that looks like an image or if the agent says "Image: [url]"
+        // For now, let's just auto-linkify and if it's an image extension, embed it.
+        const imageRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif))/g;
+        content = content.replace(imageRegex, '<div class="image-container"><img src="$1" alt="Boxer Image"></div>');
+
+        messageDiv.innerHTML = content;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return messageDiv.id;
+    }
+
+    function removeMessage(id) {
+        const msg = document.getElementById(id);
+        if (msg) msg.remove();
+    }
+
+    // Allow Enter key to send
+    document.getElementById('user-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+</script>
+{% endblock %}

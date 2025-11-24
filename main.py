@@ -35,4 +35,4 @@ def the_plug():
     return render_template('agent.html', agent_name="The Plug", catchphrase="Everybody knows the plug has the goods (;)", agent_id="the_plug")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
